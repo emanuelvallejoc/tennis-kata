@@ -1,76 +1,86 @@
+import enums.Scores;
+import models.Player;
+
+import java.util.Objects;
 
 public class TennisGame1 implements TennisGame {
-    
-    private int m_score1 = 0;
-    private int m_score2 = 0;
-    private String player1Name;
-    private String player2Name;
 
-    public TennisGame1(String player1Name, String player2Name) {
-        this.player1Name = player1Name;
-        this.player2Name = player2Name;
+    private Player firstPlayer;
+    private Player secondPlayer;
+
+    private static final String SEPARATOR ="-";
+    private static final String ALL ="All";
+    private static final String ADVANTAGE = "Advantage %s";
+    private static final String WIN_FOR="Win for %s";
+    private static final String FIRST_PLAYER="player1";
+    private static final String SECOND_PLAYER="player2";
+    private static final Integer MINIMUM_POINTS = 4;
+
+
+
+
+    public TennisGame1(String firstPlayerName, String secondPlayerName) {
+        this.firstPlayer= new Player(firstPlayerName);
+        this.secondPlayer = new Player(secondPlayerName);
     }
 
     public void wonPoint(String playerName) {
-        if (playerName == "player1")
-            m_score1 += 1;
-        else
-            m_score2 += 1;
+        this.getPlayer(playerName).plusScore();
     }
 
     public String getScore() {
-        String score = "";
-        int tempScore=0;
-        if (m_score1==m_score2)
-        {
-            switch (m_score1)
-            {
-                case 0:
-                        score = "Love-All";
-                    break;
-                case 1:
-                        score = "Fifteen-All";
-                    break;
-                case 2:
-                        score = "Thirty-All";
-                    break;
-                default:
-                        score = "Deuce";
-                    break;
-                
-            }
+        String score ="";
+        if (isDraw().equals(Boolean.TRUE)) {
+            score = firstPlayer.score() < 3 ? getScoreDraw(firstPlayer.score()).toString() : Scores.DEUCE.getValue();
         }
-        else if (m_score1>=4 || m_score2>=4)
+        else if (Boolean.TRUE.equals(haveMinimumPointsToWin()))
         {
-            int minusResult = m_score1-m_score2;
-            if (minusResult==1) score ="Advantage player1";
-            else if (minusResult ==-1) score ="Advantage player2";
-            else if (minusResult>=2) score = "Win for player1";
-            else score ="Win for player2";
+            score = differencePoints();
         }
         else
         {
-            for (int i=1; i<3; i++)
-            {
-                if (i==1) tempScore = m_score1;
-                else { score+="-"; tempScore = m_score2;}
-                switch(tempScore)
-                {
-                    case 0:
-                        score+="Love";
-                        break;
-                    case 1:
-                        score+="Fifteen";
-                        break;
-                    case 2:
-                        score+="Thirty";
-                        break;
-                    case 3:
-                        score+="Forty";
-                        break;
-                }
-            }
+            score = evaluatesScore(score);
         }
         return score;
+    }
+
+    private String  evaluatesScore(String score) {
+        var scoreBuider = new StringBuilder(score);
+        int tempScore;
+        for (int i = 1; i<3; i++)
+        {
+            if (i==1) tempScore = firstPlayer.score();
+            else { scoreBuider.append("-"); tempScore = secondPlayer.score();}
+            scoreBuider.append(getScoresByScore(tempScore).toString());
+
+        }
+        return scoreBuider.toString();
+    }
+
+
+    private Player getPlayer(String name){
+        return firstPlayer.name().equalsIgnoreCase(name)? firstPlayer : secondPlayer;
+    }
+
+    private Boolean isDraw(){
+        return Objects.equals(firstPlayer.score(), secondPlayer.score());
+    }
+    private StringBuilder getScoresByScore(Integer score){
+        return Scores.scoresByScore(score);
+    }
+    private StringBuilder getScoreDraw(Integer score){
+        return this.getScoresByScore(score).append(SEPARATOR).append(ALL);
+    }
+
+    private Boolean haveMinimumPointsToWin(){
+        return  firstPlayer.score()>= MINIMUM_POINTS || secondPlayer.score()>=MINIMUM_POINTS;
+    }
+
+    private String differencePoints(){
+        var difference = firstPlayer.score()- secondPlayer.score();
+        var firstValue = Objects.equals(Math.abs(difference), 1)? ADVANTAGE: WIN_FOR ;
+        var format = (difference <0 )? SECOND_PLAYER : FIRST_PLAYER;
+       return String.format(firstValue, format);
+
     }
 }
