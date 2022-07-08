@@ -51,7 +51,7 @@ public class TennisGame1 implements TennisGame {
         {
             if (i==1) tempScore = firstPlayer.score();
             else { scoreBuider.append("-"); tempScore = secondPlayer.score();}
-            scoreBuider.append(getScoresByScore(tempScore).toString());
+            scoreBuider.append(getScoresByScore(tempScore));
 
         }
         return scoreBuider.toString();
